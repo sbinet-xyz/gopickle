@@ -754,6 +754,46 @@ func TestP4Carray(t *testing.T) {
 	}
 }
 
+func TestBigIntP4(t *testing.T) {
+	// pickle.dumps(16824058237469023578, protocol=4)
+	const pkl = "\x80\x04\x95\x0c\x00\x00\x00\x00\x00\x00\x00\x8a\tZ]\xd3L\xd4\x0f{\xe9\x00."
+	var (
+		got  = loadsNoErr(t, pkl)
+		want = func() *big.Int {
+			v, ok := big.NewInt(0).SetString("16824058237469023578", 10)
+			if !ok {
+				t.Fatalf("could not create big int")
+			}
+			return v
+		}()
+	)
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("invalid pkl:\ngot= %v\nwant=%v", got, want)
+	}
+}
+
+func TestBigIntAsDictKeyP4(t *testing.T) {
+	// pickle.dumps({16824058237469023578:"big"}, protocol=4)
+	const pkl = "\x80\x04\x95\x15\x00\x00\x00\x00\x00\x00\x00}\x94\x8a\tZ]\xd3L\xd4\x0f{\xe9\x00\x8c\x03big\x94s."
+	var (
+		got  = loadsNoErr(t, pkl)
+		want = func() *types.Dict {
+			key, ok := big.NewInt(0).SetString("16824058237469023578", 10)
+			if !ok {
+				t.Fatalf("could not create big int")
+			}
+			d := types.NewDict()
+			d.Set(key, "big")
+			return d
+		}()
+	)
+
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("invalid pkl:\ngot= %v\nwant=%v", got, want)
+	}
+}
+
 // TODO: test BinPersId
 // TODO: test Get
 // TODO: test BinGet
